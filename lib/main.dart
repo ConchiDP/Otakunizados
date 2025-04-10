@@ -1,21 +1,45 @@
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
-import 'screens/inicio.1.dart';  
+import 'package:otakunizados/core/firebase_options.dart';
+import 'package:provider/provider.dart';
+import 'package:otakunizados/provider/login_provider.dart';
+import 'package:otakunizados/screens/auth/login_screen.dart';
+import 'package:otakunizados/screens/auth/register_screen.dart';
+import 'package:otakunizados/screens/auth/forgot_password_screen.dart';
+import 'package:otakunizados/screens/home/home_screen.dart'; // Asegúrate de tener esta importación
 
-void main() {
-  runApp(OtakunizadosApp());
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
+
+  runApp(
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => LoginProvider()),
+      ],
+      child: const OtakunizadosApp(),
+    ),
+  );
 }
 
 class OtakunizadosApp extends StatelessWidget {
+  const OtakunizadosApp({super.key});
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      debugShowCheckedModeBanner: false,
       title: 'Otakunizados',
-      theme: ThemeData(
-        primaryColor: Color(0xFF00BFFF),
-        scaffoldBackgroundColor: Colors.white,
-        fontFamily: 'Roboto',
-      ),
-      home: HomePage(),  // Aquí cargamos la pantalla de inicio
+      theme: ThemeData.dark(),
+      initialRoute: '/login',
+      routes: {
+        '/login': (context) => LoginScreen(),
+        '/register': (context) => RegisterScreen(),
+        '/forgot': (context) => ForgotPasswordScreen(),
+        '/home': (context) => const HomeScreen(),
+      },
     );
   }
 }
