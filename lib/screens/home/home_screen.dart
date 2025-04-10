@@ -9,7 +9,7 @@ class HomeScreen extends StatelessWidget {
     return AppScaffold(
       title: 'Bienvenido', // Título que aparece en el AppBar
       appBar: AppBar(
-        backgroundColor: const Color.fromARGB(255, 255, 255, 255),
+        backgroundColor: const Color.fromARGB(255, 0, 0, 0), // Fondo oscuro en el AppBar
         title: Row(
           children: [
             // Imagen pequeña de Otakunizados en el banner
@@ -46,83 +46,121 @@ class HomeScreen extends StatelessWidget {
           ),
         ],
       ),
-body: Container(
-        color: Colors.white, // El fondo de toda la pantalla será blanco
-        child: Padding(
-          padding: const EdgeInsets.all(24.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Título con el fondo blanco y el texto dentro
-              Container(
-                padding: const EdgeInsets.all(16.0),
-                color: Colors.white, // Fondo blanco solo para el área de texto
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: const [
-                    Text(
-                      '¡Bienvenido a Otakunizados!',
-                      style: TextStyle(
-                          color: Colors.black,
-                          fontSize: 24,
-                          fontWeight: FontWeight.bold),
+      body: Stack(
+        children: [
+          // Fondo blanco
+          Container(
+            color: Colors.white, // Fondo blanco
+            child: Padding(
+              padding: const EdgeInsets.all(24.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Título con el fondo blanco y el texto dentro
+                  Container(
+                    padding: const EdgeInsets.all(16.0),
+                    color: Colors.white, // Fondo blanco solo para el área de texto
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: const [
+                        Text(
+                          '¡Bienvenido a Otakunizados!',
+                          style: TextStyle(
+                              color: Colors.black,
+                              fontSize: 24,
+                              fontWeight: FontWeight.bold),
+                        ),
+                        SizedBox(height: 10),
+                        Text(
+                          'Donde tu mundo otaku cobra vida.',
+                          style: TextStyle(color: Colors.black, fontSize: 18),
+                        ),
+                      ],
                     ),
-                    SizedBox(height: 10),
-                    Text(
-                      'Donde tu mundo otaku cobra vida.',
-                      style: TextStyle(color: Colors.black, fontSize: 18),
+                  ),
+                  const SizedBox(height: 30),
+                  // Botón Noticias
+                  ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Color(0xFF0D47A1), // Color azul similar al login
+                      minimumSize: const Size(double.infinity, 50),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(15), // Bordes redondeados
+                      ),
+                      side: BorderSide(color: Colors.white, width: 2), // Borde blanco
                     ),
-                  ],
-                ),
+                    onPressed: () {
+                      // Acción para ir a la pantalla de Noticias
+                    },
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: const [
+                        Icon(Icons.newspaper, color: Colors.white),
+                        SizedBox(width: 10),
+                        Text(
+                          'Noticias',
+                          style: TextStyle(color: Colors.white),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  // Botón Calendario
+                  ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Color(0xFF0D47A1), // Color azul similar al login
+                      minimumSize: const Size(double.infinity, 50),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(15), // Bordes redondeados
+                      ),
+                      side: BorderSide(color: Colors.white, width: 2), // Borde blanco
+                    ),
+                    onPressed: () {
+                      // Acción para ir a la pantalla de Calendario
+                    },
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: const [
+                        Icon(Icons.calendar_today, color: Colors.white),
+                        SizedBox(width: 10),
+                        Text(
+                          'Calendario',
+                          style: TextStyle(color: Colors.white),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  // Botón Eventos
+                  ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Color(0xFF0D47A1), // Color azul similar al login
+                      minimumSize: const Size(double.infinity, 50),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(15), // Bordes redondeados
+                      ),
+                      side: BorderSide(color: Colors.white, width: 2), // Borde blanco
+                    ),
+                    onPressed: () {
+                      // Acción para ir a la pantalla de Eventos
+                    },
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: const [
+                        Icon(Icons.event, color: Colors.white),
+                        SizedBox(width: 10),
+                        Text(
+                          'Eventos',
+                          style: TextStyle(color: Colors.white),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
               ),
-              const SizedBox(height: 30),
-              // Botón Noticias
-              ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Color(0xFF0D47A1), // Color azul similar al login
-                  minimumSize: const Size(double.infinity, 50),
-                ),
-                onPressed: () {
-                  // Acción para ir a la pantalla de Noticias
-                },
-                child: const Text(
-                  'Noticias',
-                  style: TextStyle(color: Colors.white),
-                ),
-              ),
-              const SizedBox(height: 10),
-              // Botón Calendario
-              ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Color(0xFF0D47A1), // Color azul similar al login
-                  minimumSize: const Size(double.infinity, 50),
-                ),
-                onPressed: () {
-                  // Acción para ir a la pantalla de Calendario
-                },
-                child: const Text(
-                  'Calendario',
-                  style: TextStyle(color: Colors.white),
-                ),
-              ),
-              const SizedBox(height: 10),
-              // Botón Eventos
-              ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Color(0xFF0D47A1), // Color azul similar al login
-                  minimumSize: const Size(double.infinity, 50),
-                ),
-                onPressed: () {
-                  // Acción para ir a la pantalla de Eventos
-                },
-                child: const Text(
-                  'Eventos',
-                  style: TextStyle(color: Colors.white),
-                ),
-              ),
-            ],
+            ),
           ),
-        ),
+        ],
       ),
     );
   }
