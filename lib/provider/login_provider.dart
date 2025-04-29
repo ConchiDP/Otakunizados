@@ -1,9 +1,11 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:otakunizados/services/login_services.dart';
 
 class LoginProvider with ChangeNotifier {
   final FirebaseAuth _auth = FirebaseAuth.instance;
+  final LoginServices _loginServices = LoginServices();
 
   bool _isLoading = false;
   bool get isLoading => _isLoading;
@@ -66,6 +68,34 @@ class LoginProvider with ChangeNotifier {
       return e.message; // Devolvemos el mensaje de error si ocurre un error en Firebase
     } catch (e) {
       return 'Ha ocurrido un error inesperado: ${e.toString()}';
+    }
+  }
+
+  // Método para iniciar sesión con Google
+  Future<String?> signInWithGoogle() async {
+    try {
+      setLoading(true);
+      final user = await _loginServices.signInWithGoogle();
+      
+      if (user != null) {
+        // Guardar los detalles del usuario en Firestore si es un nuevo usuario
+        final userDoc = await FirebaseFirestore.instance.collection('users').doc(user.uid).get();
+        if (!userDoc.exists) {
+          await FirebaseFirestore.instance.collection('users').doc(user.uid).set({
+            'name': user.displayName,
+            'email': user.email,
+            'photoURL': user.photoURL,
+            'createdAt': FieldValue.serverTimestamp(),
+          });
+        }
+        return null;
+      } else {
+        return 'No se pudo iniciar sesión con Google';
+      }
+    } catch (e) {
+      return 'Error al iniciar sesión con Google: ${e.toString()}';
+    } finally {
+      setLoading(false);
     }
   }
 
