@@ -12,7 +12,12 @@
           "package_name": "com.example.otakunizados"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "486636829088-muak5fngtjs3ut9h18ilg95psbld9og9.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyAi-K9NNCRqy8anEQ0_IW43jD3xNhyxwaA"
@@ -20,7 +25,19 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "486636829088-muak5fngtjs3ut9h18ilg95psbld9og9.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "486636829088-to5hrp46i69smk4mgcl1s7t0hhcri7l6.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.otakunizados"
+              }
+            }
+          ]
         }
       }
     }

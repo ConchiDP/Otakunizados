@@ -86,6 +86,27 @@ class LoginScreen extends StatelessWidget {
                   child: const Text('Entrar', style: TextStyle(color: Colors.white, fontSize: 16)),
                 ),
 
+          const SizedBox(height: 20),
+
+          // Botón de inicio de sesión con Google
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: azulOscuro,
+              minimumSize: const Size(double.infinity, 50),
+            ),
+            onPressed: () async {
+              final errorMessage = await loginProvider.signInWithGoogle();
+              if (errorMessage != null) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text(errorMessage)),
+                );
+              } else {
+                Navigator.pushReplacementNamed(context, '/home');
+              }
+            },
+            child: const Text('Continuar con Google', style: TextStyle(color: Colors.white, fontSize: 16)),
+          ),
+
           const SizedBox(height: 10),
 
           // Enlace para ir a la pantalla de olvido de contraseña
