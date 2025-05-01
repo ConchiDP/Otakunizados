@@ -7,9 +7,9 @@ import 'package:otakunizados/screens/auth/login_screen.dart';
 import 'package:otakunizados/screens/auth/register_screen.dart';
 import 'package:otakunizados/screens/auth/forgot_password_screen.dart';
 import 'package:otakunizados/screens/home/home_screen.dart'; // Asegúrate de tener esta importación
-import 'package:otakunizados/screens/home/news_screen.dart';
-import 'package:otakunizados/screens/home/news_list_screen.dart';
-import 'package:otakunizados/screens/events_screen.dart';
+import 'package:otakunizados/screens/news/news_screen.dart';
+import 'package:otakunizados/screens/news/news_list_screen.dart';
+import 'package:otakunizados/screens/events/events_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
