@@ -25,30 +25,33 @@ class _EventsScreenState extends State<EventsScreen> {
 
   Future<void> _fetchProvinces() async {
     try {
-      final provincesSnapshot =
-          await FirebaseFirestore.instance.collection('provinces').get();
+      final eventsSnapshot = await FirebaseFirestore.instance
+          .collection('events')
+          .get();
 
-      final provincesList =
-          provincesSnapshot.docs.map((doc) => doc['name'] as String).toList();
+      final provincesSet = <String>{};
 
+      // Extraemos las provincias de los eventos
+      for (var doc in eventsSnapshot.docs) {
+        final province = doc.data()['province']?.toString().trim() ?? '';
+        if (province.isNotEmpty) {
+          provincesSet.add(province);
+        }
+      }
+
+      // Convirtiendo el conjunto en lista
+      final provincesList = provincesSet.toList();
+
+      // Asegurándonos de incluir "Todas" como opción predeterminada
       setState(() {
         _provinces = ['Todas', ...provincesList];
       });
-    } catch (e) {
-      print("Error al cargar las provincias: $e");
-    }
-  }
 
-  Future<bool> _isRunningOnEmulator() async {
-    final deviceInfo = DeviceInfoPlugin();
-    if (Platform.isAndroid) {
-      final androidInfo = await deviceInfo.androidInfo;
-      return !androidInfo.isPhysicalDevice;
-    } else if (Platform.isIOS) {
-      final iosInfo = await deviceInfo.iosInfo;
-      return !iosInfo.isPhysicalDevice;
+      print('Provincias cargadas desde eventos: $provincesList');
+    } catch (e, stack) {
+      print("Error al cargar las provincias: $e");
+      print(stack);
     }
-    return false;
   }
 
   @override
@@ -60,7 +63,7 @@ class _EventsScreenState extends State<EventsScreen> {
           Padding(
             padding: const EdgeInsets.all(8.0),
             child: _provinces.isEmpty
-                ? const CircularProgressIndicator()
+                ? const Center(child: CircularProgressIndicator())
                 : DropdownButton<String>(
                     value: _selectedProvince,
                     isExpanded: true,
@@ -72,6 +75,7 @@ class _EventsScreenState extends State<EventsScreen> {
                     }).toList(),
                     onChanged: (newValue) {
                       if (newValue != null) {
+                        print('Provincia seleccionada: "$newValue"');
                         setState(() {
                           _selectedProvince = newValue;
                         });
@@ -91,6 +95,7 @@ class _EventsScreenState extends State<EventsScreen> {
                 }
 
                 final events = snapshot.data ?? [];
+
                 if (events.isEmpty) {
                   return const Center(
                     child: Text('No hay eventos próximos en esta provincia'),
@@ -136,15 +141,32 @@ class _EventsScreenState extends State<EventsScreen> {
   }
 
   Stream<List<EventModel>> _getEventsByProvince(String province) {
-    final query = FirebaseFirestore.instance.collection('events');
-    final stream = (province == 'Todas'
-        ? query.orderBy('date')
-        : query.where('province', isEqualTo: province).orderBy('date'));
-    return stream.snapshots().map((snapshot) =>
-        snapshot.docs.map((doc) => EventModel.fromMap(doc.data())).toList());
+    final collection = FirebaseFirestore.instance.collection('events');
+
+    Query query;
+    if (province == 'Todas') {
+      query = collection.orderBy('date');
+    } else {
+      final cleanProvince = province.trim();
+      print('Consultando eventos de la provincia: "$cleanProvince"');
+
+      query = collection
+          .where('province', isEqualTo: cleanProvince)
+          .orderBy('date');
+    }
+
+    return query.snapshots().map((snapshot) {
+      final list = snapshot.docs.map((doc) {
+        final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+        return EventModel.fromMap(data);
+      }).toList();
+
+      print('Eventos obtenidos de Firestore: ${list.length}');
+      return list;
+    });
   }
 
-  void _showEventDetails(EventModel event) async {
+  void _showEventDetails(EventModel event) {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -189,8 +211,8 @@ class _EventsScreenState extends State<EventsScreen> {
                     ),
                     onPressed: () => _launchUrl(event.url),
                     child: const Text(
-                        'Comprar entradas',
-                        style: TextStyle(color: Colors.white, fontSize: 16),
+                      'Comprar entradas',
+                      style: TextStyle(color: Colors.white, fontSize: 16),
                     ),
                   ),
                 ),
@@ -201,7 +223,7 @@ class _EventsScreenState extends State<EventsScreen> {
     );
   }
 
-Future<void> _launchUrl(String urlString) async {
+  Future<void> _launchUrl(String urlString) async {
     final Uri url = Uri.parse(urlString);
     try {
       await launchUrl(
