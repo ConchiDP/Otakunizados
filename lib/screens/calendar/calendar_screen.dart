@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:table_calendar/table_calendar.dart';
 import 'package:otakunizados/models/anime_schedule_model.dart';
 import 'package:otakunizados/services/anilist_service.dart';
 import 'package:otakunizados/services/anime_schedule_firestore_service.dart';
+import 'package:table_calendar/table_calendar.dart';
 
 class CalendarScreen extends StatefulWidget {
   const CalendarScreen({Key? key}) : super(key: key);
@@ -34,7 +34,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
 
   Future<void> _loadScheduleFromFirestore() async {
     setState(() => _isLoading = true);
-    final episodes = await AnimeScheduleFirestoreService().getEpisodes();
+    final episodes = await AnimeScheduleFirestoreService().getEpisodes(); // ✅ Este método debe existir
     _groupEpisodesByDate(episodes);
     setState(() => _isLoading = false);
   }
@@ -45,8 +45,10 @@ class _CalendarScreenState extends State<CalendarScreen> {
     try {
       final schedule = await AniListService().getEpisodesThisAndNextWeek();
 
-      if (schedule != null && schedule.isNotEmpty) {
-        await AnimeScheduleFirestoreService().saveEpisodes(schedule);
+      if (schedule.isNotEmpty) {
+        for (var episode in schedule) {
+          await AnimeScheduleFirestoreService().saveEpisode(episode); // ✅ Aquí pasamos el objeto correcto
+        }
       }
 
       await _loadScheduleFromFirestore();
@@ -60,25 +62,16 @@ class _CalendarScreenState extends State<CalendarScreen> {
     _groupedEpisodes.clear();
 
     for (var episode in episodes) {
-      try {
-        // Aseguramos que estamos creando una fecha válida a partir de airingAt
-        final date = DateTime.fromMillisecondsSinceEpoch(episode.airingAt);
-        final dateKey = DateTime(date.year, date.month, date.day);
-        
-        // Agregamos los episodios por fecha
-        if (_groupedEpisodes[dateKey] == null) {
-          _groupedEpisodes[dateKey] = [];
-        }
-        _groupedEpisodes[dateKey]!.add(episode);
-      } catch (e) {
-        print("❌ Error al agrupar episodios para la fecha: ${episode.airingAt}, error: $e");
+      final date = DateTime.fromMillisecondsSinceEpoch(episode.airingAt);
+      final dateKey = DateTime(date.year, date.month, date.day);
+      if (_groupedEpisodes[dateKey] == null) {
+        _groupedEpisodes[dateKey] = [];
       }
+      _groupedEpisodes[dateKey]!.add(episode);
     }
 
-    // Actualizamos el estado
     _selectedDay = _focusedDay;
     _selectedEpisodes = _groupedEpisodes[_selectedDay] ?? [];
-    print("🗓️ Episodios agrupados: $_groupedEpisodes");
   }
 
   List<AnimeSchedule> _getEpisodesForDay(DateTime day) {
@@ -106,8 +99,8 @@ class _CalendarScreenState extends State<CalendarScreen> {
                   firstDay: DateTime.now().subtract(const Duration(days: 7)),
                   lastDay: DateTime.now().add(const Duration(days: 14)),
                   calendarFormat: CalendarFormat.week,
-                  locale: 'es_ES', // Establece el locale a español
-                  startingDayOfWeek: StartingDayOfWeek.monday, // Inicio de semana en lunes
+                  locale: 'es_ES',
+                  startingDayOfWeek: StartingDayOfWeek.monday,
                   selectedDayPredicate: (day) => isSameDay(_selectedDay, day),
                   eventLoader: _getEpisodesForDay,
                   onDaySelected: (selectedDay, focusedDay) {

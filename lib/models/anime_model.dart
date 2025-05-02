@@ -1,63 +1,61 @@
-// anime_model.dart
-
-class Anime {
-  final int id;
-  final String title;
-  final List<AnimeEpisode> episodes;
-
-  Anime({
-    required this.id,
-    required this.title,
-    required this.episodes,  // Aseguramos que se maneje una lista de episodios
-  });
-
-  factory Anime.fromMap(Map<String, dynamic> map) {
-    return Anime(
-      id: map['id'],
-      title: map['title'],
-      episodes: (map['episodes'] as List)
-          .map((episodeMap) => AnimeEpisode.fromMap(episodeMap))
-          .toList(),
-    );
-  }
-
-  Map<String, dynamic> toMap() {
-    return {
-      'id': id,
-      'title': title,
-      'episodes': episodes.map((e) => e.toMap()).toList(),
-    };
-  }
-}
-
 class AnimeEpisode {
   final int episode;
+  final String title;
   final int airingAt;
   final String coverImageUrl;
-  final String romaji;
 
   AnimeEpisode({
     required this.episode,
+    required this.title,
     required this.airingAt,
     required this.coverImageUrl,
-    required this.romaji,
   });
-
-  factory AnimeEpisode.fromMap(Map<String, dynamic> map) {
-    return AnimeEpisode(
-      episode: map['episode'],
-      airingAt: map['airingAt'],
-      coverImageUrl: map['coverImageUrl'] ?? '',
-      romaji: map['romaji'] ?? '',
-    );
-  }
 
   Map<String, dynamic> toMap() {
     return {
       'episode': episode,
+      'title': title,
       'airingAt': airingAt,
       'coverImageUrl': coverImageUrl,
-      'romaji': romaji,
     };
+  }
+
+  factory AnimeEpisode.fromMap(Map<String, dynamic> map) {
+    return AnimeEpisode(
+      episode: map['episode'] ?? 0,
+      title: map['title'] ?? '',
+      airingAt: map['airingAt'] ?? 0,
+      coverImageUrl: map['coverImageUrl'] ?? '',
+    );
+  }
+}
+
+class Anime {
+  final String title;
+  final String coverImageUrl;
+  final List<AnimeEpisode> episodes;
+
+  Anime({
+    required this.title,
+    required this.coverImageUrl,
+    required this.episodes,
+  });
+
+  Map<String, dynamic> toMap() {
+    return {
+      'title': title,
+      'coverImageUrl': coverImageUrl,
+      'episodes': episodes.map((e) => e.toMap()).toList(),
+    };
+  }
+
+  factory Anime.fromMap(Map<String, dynamic> map) {
+    return Anime(
+      title: map['title'] ?? '',
+      coverImageUrl: map['coverImageUrl'] ?? '',
+      episodes: (map['episodes'] as List<dynamic>)
+          .map((e) => AnimeEpisode.fromMap(e as Map<String, dynamic>))
+          .toList(),
+    );
   }
 }
