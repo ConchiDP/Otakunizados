@@ -1,54 +1,62 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:otakunizados/models/anime_schedule_model.dart';
-import 'package:otakunizados/models/anime_model.dart';
 
 class AnimeScheduleFirestoreService {
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final FirebaseFirestore _db = FirebaseFirestore.instance;
 
-  /// Guarda un episodio usando `airingAt` como ID único
-  Future<void> saveEpisode(AnimeSchedule animeSchedule) async {
-    await _firestore
-        .collection('episodes')
-        .doc(animeSchedule.airingAt.toString()) // ✅ Usamos airingAt como ID
-        .set(animeSchedule.toMap());
-  }
-
-  /// Guarda un anime y acumula episodios únicos en la lista
-  Future<void> saveAnime(Anime anime) async {
-    final docRef = _firestore.collection('animes').doc(anime.title);
-    final docSnapshot = await docRef.get();
-
-    if (docSnapshot.exists) {
-      final data = docSnapshot.data();
-      final List<dynamic> existingEpisodes = (data?['episodes'] ?? []) as List;
-
-      final newEpisode = anime.episodes.first.toMap();
-
-      final alreadyExists = existingEpisodes.any((e) => e['airingAt'] == newEpisode['airingAt']);
-
-      if (!alreadyExists) {
-        existingEpisodes.add(newEpisode);
-        await docRef.update({'episodes': existingEpisodes});
-      }
-    } else {
-      // Si no existe, lo crea con el episodio
-      await docRef.set(anime.toMap());
+  // Verifica si un episodio con la ID 'airingAt' ya existe en la colección 'episodes'
+  Future<bool> doesEpisodeExist(int airingAt) async {
+    try {
+      final docRef = _db.collection('episodes').doc(airingAt.toString());
+      final docSnapshot = await docRef.get();
+      return docSnapshot.exists;
+    } catch (e) {
+      print("❌ Error al verificar si el episodio existe: $e");
+      return false;
     }
   }
 
-  /// Recupera todos los episodios desde Firestore
-  Future<List<AnimeSchedule>> getEpisodes() async {
-    final snapshot = await _firestore.collection('episodes').get();
-    return snapshot.docs
-        .map((doc) => AnimeSchedule.fromMap(doc.data()))
-        .toList();
+  // Guarda un episodio en la colección 'episodes'
+  Future<void> saveEpisode(AnimeSchedule episode) async {
+    try {
+      final docRef = _db.collection('episodes').doc(episode.airingAt.toString());
+      
+      await docRef.set({
+        'title': episode.title,
+        'episode': episode.episode,
+        'airingAt': episode.airingAt,
+        'coverImageUrl': episode.coverImageUrl,
+      });
+
+      print("✅ Episodio guardado con éxito: ${episode.title} episodio ${episode.episode}");
+    } catch (e) {
+      print("❌ Error al guardar el episodio: $e");
+    }
   }
 
-  /// Recupera todos los animes (opcional, por si los usas en otro lugar)
-  Future<List<Anime>> getAnimes() async {
-    final snapshot = await _firestore.collection('animes').get();
-    return snapshot.docs
-        .map((doc) => Anime.fromMap(doc.data()))
-        .toList();
+  // Obtiene todos los episodios de la colección 'episodes'
+  Future<List<AnimeSchedule>> getEpisodes() async {
+    try {
+      final snapshot = await _db.collection('episodes').get();
+
+      if (snapshot.docs.isEmpty) {
+        return [];
+      }
+
+      final List<AnimeSchedule> episodes = snapshot.docs.map((doc) {
+        final data = doc.data();
+        return AnimeSchedule(
+          airingAt: data['airingAt'],
+          episode: data['episode'],
+          title: data['title'],
+          coverImageUrl: data['coverImageUrl'],
+        );
+      }).toList();
+
+      return episodes;
+    } catch (e) {
+      print("❌ Error al obtener episodios desde Firestore: $e");
+      return [];
+    }
   }
 }

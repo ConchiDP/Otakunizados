@@ -34,7 +34,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
 
   Future<void> _loadScheduleFromFirestore() async {
     setState(() => _isLoading = true);
-    final episodes = await AnimeScheduleFirestoreService().getEpisodes(); // ✅ Este método debe existir
+    final episodes = await AnimeScheduleFirestoreService().getEpisodes(); // Asegúrate de que este método esté implementado
     _groupEpisodesByDate(episodes);
     setState(() => _isLoading = false);
   }
@@ -47,7 +47,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
 
       if (schedule.isNotEmpty) {
         for (var episode in schedule) {
-          await AnimeScheduleFirestoreService().saveEpisode(episode); // ✅ Aquí pasamos el objeto correcto
+          await AnimeScheduleFirestoreService().saveEpisode(episode); // Guarda episodios
         }
       }
 
@@ -75,7 +75,8 @@ class _CalendarScreenState extends State<CalendarScreen> {
   }
 
   List<AnimeSchedule> _getEpisodesForDay(DateTime day) {
-    return _groupedEpisodes[DateTime(day.year, day.month, day.day)] ?? [];
+    final key = DateTime(day.year, day.month, day.day); // Normalizamos la fecha
+    return _groupedEpisodes[key] ?? [];
   }
 
   @override

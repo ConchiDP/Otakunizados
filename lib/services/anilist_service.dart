@@ -2,6 +2,7 @@ import 'package:graphql_flutter/graphql_flutter.dart';
 import 'package:otakunizados/models/anime_schedule_model.dart';
 import 'package:otakunizados/models/anime_model.dart';
 import 'package:otakunizados/services/anime_schedule_firestore_service.dart';
+import 'package:otakunizados/services/anime_firestore_service.dart';
 
 class AniListService {
   late GraphQLClient _client;
@@ -19,11 +20,11 @@ class AniListService {
   }
 
   Future<List<AnimeSchedule>> getEpisodesThisAndNextWeek() async {
-    final now = DateTime.now();
+    final now = DateTime.now().toUtc();
 
-    final thisMonday = now.subtract(Duration(days: now.weekday - 1));
-    final nextMonday = thisMonday.add(Duration(days: 7));
-    final nextSunday = nextMonday.add(Duration(days: 6));
+    final thisMonday = now.subtract(Duration(days: now.weekday - 1)); // lunes de esta semana
+    final nextMonday = thisMonday.add(Duration(days: 7));  // lunes de la próxima semana
+    final nextSunday = nextMonday.add(Duration(days: 6)); // domingo de la próxima semana
 
     final startTimestamp = thisMonday.millisecondsSinceEpoch;
     final endTimestamp = nextSunday.millisecondsSinceEpoch;
@@ -104,48 +105,11 @@ class AniListService {
     }).toList();
 
     try {
-      for (var item in filteredSchedules) {
+      final sortedSchedules = filteredSchedules.map((item) {
         final media = item['media'];
         final coverInfo = media['coverImage'];
         final titleInfo = media['title'];
 
-        final title = titleInfo?['romaji'] ?? titleInfo?['english'] ?? 'Título no disponible';
-        final airingTime = item['airingAt'] as int;
-        final timestamp = _convertAiringTimeToTimestamp(airingTime);
-        final episodeNumber = item['episode'] as int? ?? 0;
-        final coverImageUrl = coverInfo?['large'] as String? ?? '';
-
-        // Creamos un AnimeSchedule para mostrar en el calendario
-        final animeSchedule = AnimeSchedule(
-          airingAt: timestamp,
-          episode: episodeNumber,
-          title: title,
-          coverImageUrl: coverImageUrl,
-        );
-
-        // Guardamos individualmente como episodio en Firestore
-        await AnimeScheduleFirestoreService().saveEpisode(animeSchedule);
-
-        // Convertimos a AnimeEpisode para guardarlo en el modelo Anime
-        final animeEpisode = AnimeEpisode(
-          episode: episodeNumber,
-          title: title,
-          airingAt: timestamp,
-          coverImageUrl: coverImageUrl,
-        );
-
-        await AnimeScheduleFirestoreService().saveAnime(Anime(
-          title: title,
-          coverImageUrl: coverImageUrl,
-          episodes: [animeEpisode],
-        ));
-      }
-
-      // Retornar la lista para el calendario (no afecta a Firebase)
-      return filteredSchedules.map((item) {
-        final media = item['media'];
-        final coverInfo = media['coverImage'];
-        final titleInfo = media['title'];
         final title = titleInfo?['romaji'] ?? titleInfo?['english'] ?? 'Título no disponible';
         final airingTime = item['airingAt'] as int;
         final timestamp = _convertAiringTimeToTimestamp(airingTime);
@@ -159,6 +123,53 @@ class AniListService {
           coverImageUrl: coverImageUrl,
         );
       }).toList();
+
+      sortedSchedules.sort((a, b) => a.airingAt.compareTo(b.airingAt));
+
+      // Guardar anime con episodios en Firestore
+      for (var animeSchedule in sortedSchedules) {
+        final exists = await AnimeScheduleFirestoreService().doesEpisodeExist(animeSchedule.airingAt);
+        if (!exists) {
+          await AnimeScheduleFirestoreService().saveEpisode(animeSchedule);
+          print("Guardando episodio: ${animeSchedule.title} episodio ${animeSchedule.episode}");
+        } else {
+          print("Episodio ya existe: ${animeSchedule.title} episodio ${animeSchedule.episode}");
+        }
+
+        // Ahora guardamos el anime, solo si no existe en Firestore
+        final anime = await AnimeFirestoreService().getAnimeByTitle(animeSchedule.title);
+        if (anime == null) {
+          final newAnime = Anime(
+            title: animeSchedule.title,
+            coverImageUrl: animeSchedule.coverImageUrl,
+            episodes: [
+              AnimeEpisode(
+                airingAt: animeSchedule.airingAt,
+                episode: animeSchedule.episode,
+                title: animeSchedule.title,
+                coverImageUrl: animeSchedule.coverImageUrl,
+              )
+            ],
+          );
+          await AnimeFirestoreService().saveAnime(animeSchedule.title, newAnime);
+          print("Guardando anime nuevo: ${animeSchedule.title}");
+        } else {
+          // Si el anime ya existe, actualizamos sus episodios si no están duplicados
+          final existingEpisodes = anime.episodes ?? [];
+          final updatedEpisodes = [...existingEpisodes, animeSchedule]
+              .toSet() // Eliminar duplicados
+              .toList();
+          final updatedAnime = Anime(
+            title: anime.title,
+            coverImageUrl: anime.coverImageUrl,
+            episodes: updatedEpisodes.cast<AnimeEpisode>(),
+          );
+          await AnimeFirestoreService().saveAnime(animeSchedule.title, updatedAnime);
+          print("Actualizando episodios del anime: ${animeSchedule.title}");
+        }
+      }
+
+      return sortedSchedules;
     } catch (e) {
       print("❌ Error al mapear los datos de AniList a AnimeSchedule: $e");
       return null;
