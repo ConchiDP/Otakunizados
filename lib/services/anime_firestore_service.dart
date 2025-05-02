@@ -1,5 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:otakunizados/models/anime_model.dart';
+import 'package:otakunizados/models/anime_model.dart';  // Asegúrate de que los modelos estén bien definidos.
 
 class AnimeFirestoreService {
   final _db = FirebaseFirestore.instance;

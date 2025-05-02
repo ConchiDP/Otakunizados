@@ -1,5 +1,7 @@
 import 'package:graphql_flutter/graphql_flutter.dart';
 import 'package:otakunizados/models/anime_schedule_model.dart';
+import 'package:otakunizados/models/anime_model.dart';
+import 'package:otakunizados/services/anime_schedule_firestore_service.dart';
 
 class AniListService {
   late GraphQLClient _client;
@@ -18,22 +20,17 @@ class AniListService {
 
   Future<List<AnimeSchedule>> getEpisodesThisAndNextWeek() async {
     final now = DateTime.now();
-  
-  // Lunes de esta semana (ajustado)
-  final thisMonday = now.subtract(Duration(days: now.weekday - 1)); // Restar el día actual menos 1 (lunes)
-  
-  // Lunes de la próxima semana
-  final nextMonday = DateTime(now.year, now.month, now.day + (8 - now.weekday)); // Mismo cálculo que antes
-  
-  // Domingo de la próxima semana
-  final nextSunday = nextMonday.add(Duration(days: 6));  // Domingo de la siguiente semana
-  
-  final startTimestamp = thisMonday.millisecondsSinceEpoch;  // Usar el lunes de esta semana
-  final endTimestamp = nextSunday.millisecondsSinceEpoch;    // Usar el domingo de la próxima semana
 
-  final result = await getWeeklySchedule(startTimestamp, endTimestamp);
-  return result ?? [];
-}
+    final thisMonday = now.subtract(Duration(days: now.weekday - 1));
+    final nextMonday = thisMonday.add(Duration(days: 7));
+    final nextSunday = nextMonday.add(Duration(days: 6));
+
+    final startTimestamp = thisMonday.millisecondsSinceEpoch;
+    final endTimestamp = nextSunday.millisecondsSinceEpoch;
+
+    final result = await getWeeklySchedule(startTimestamp, endTimestamp);
+    return result ?? [];
+  }
 
   Future<List<AnimeSchedule>?> getWeeklySchedule(int startTimestamp, int endTimestamp) async {
     int startSeconds = startTimestamp ~/ 1000;
@@ -41,7 +38,7 @@ class AniListService {
 
     final query = gql(r'''
       query ($start: Int, $end: Int) {
-        Page(page: 1, perPage: 0) {
+        Page(page: 1, perPage: 100) {
           airingSchedules(airingAt_greater: $start, airingAt_lesser: $end, sort: TIME) {
             airingAt
             episode
@@ -107,19 +104,59 @@ class AniListService {
     }).toList();
 
     try {
-      return filteredSchedules.map((item) {
+      for (var item in filteredSchedules) {
         final media = item['media'];
-        final titleInfo = media['title'];
         final coverInfo = media['coverImage'];
+        final titleInfo = media['title'];
 
+        final title = titleInfo?['romaji'] ?? titleInfo?['english'] ?? 'Título no disponible';
         final airingTime = item['airingAt'] as int;
         final timestamp = _convertAiringTimeToTimestamp(airingTime);
+        final episodeNumber = item['episode'] as int? ?? 0;
+        final coverImageUrl = coverInfo?['large'] as String? ?? '';
+
+        // Creamos un AnimeSchedule para mostrar en el calendario
+        final animeSchedule = AnimeSchedule(
+          airingAt: timestamp,
+          episode: episodeNumber,
+          title: title,
+          coverImageUrl: coverImageUrl,
+        );
+
+        // Guardamos individualmente como episodio en Firestore
+        await AnimeScheduleFirestoreService().saveEpisode(animeSchedule);
+
+        // Convertimos a AnimeEpisode para guardarlo en el modelo Anime
+        final animeEpisode = AnimeEpisode(
+          episode: episodeNumber,
+          title: title,
+          airingAt: timestamp,
+          coverImageUrl: coverImageUrl,
+        );
+
+        await AnimeScheduleFirestoreService().saveAnime(Anime(
+          title: title,
+          coverImageUrl: coverImageUrl,
+          episodes: [animeEpisode],
+        ));
+      }
+
+      // Retornar la lista para el calendario (no afecta a Firebase)
+      return filteredSchedules.map((item) {
+        final media = item['media'];
+        final coverInfo = media['coverImage'];
+        final titleInfo = media['title'];
+        final title = titleInfo?['romaji'] ?? titleInfo?['english'] ?? 'Título no disponible';
+        final airingTime = item['airingAt'] as int;
+        final timestamp = _convertAiringTimeToTimestamp(airingTime);
+        final episodeNumber = item['episode'] as int? ?? 0;
+        final coverImageUrl = coverInfo?['large'] as String? ?? '';
 
         return AnimeSchedule(
           airingAt: timestamp,
-          episode: item['episode'] as int? ?? 0,
-          title: titleInfo?['romaji'] as String? ?? titleInfo?['english'] as String? ?? 'Título no disponible',
-          coverImageUrl: coverInfo?['large'] as String? ?? '',
+          episode: episodeNumber,
+          title: title,
+          coverImageUrl: coverImageUrl,
         );
       }).toList();
     } catch (e) {
