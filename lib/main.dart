@@ -10,13 +10,15 @@ import 'package:otakunizados/screens/home/home_screen.dart';
 import 'package:otakunizados/screens/news/news_screen.dart';
 import 'package:otakunizados/screens/news/news_list_screen.dart';
 import 'package:otakunizados/screens/events/events_screen.dart';
-import 'package:otakunizados/screens/calendar/calendar_screen.dart'; // AÑADIDO
+import 'package:otakunizados/screens/calendar/calendar_screen.dart'; // calendario español
+import 'package:intl/date_symbol_data_local.dart'; // Importa esto para la localización
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
+  await initializeDateFormatting('es_ES', null); // Inicializa la localización para español
 
   runApp(
     MultiProvider(
@@ -46,7 +48,7 @@ class OtakunizadosApp extends StatelessWidget {
         '/news': (context) => const NewsScreen(),
         '/news-list': (context) => const NewsListScreen(),
         '/events': (context) => const EventsScreen(),
-        '/calendar': (context) => const CalendarScreen(), // AÑADIDO
+        '/calendar': (context) => const CalendarScreen(), 
       },
     );
   }

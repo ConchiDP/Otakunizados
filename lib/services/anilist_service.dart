@@ -16,17 +16,24 @@ class AniListService {
     return airingTime * 1000;
   }
 
-  Future<List<AnimeSchedule>> getEpisodesThisWeek() async {
+  Future<List<AnimeSchedule>> getEpisodesThisAndNextWeek() async {
     final now = DateTime.now();
-    final startOfWeek = DateTime(now.year, now.month, now.day - now.weekday + 1);
-    final endOfWeek = startOfWeek.add(const Duration(days: 6));
+  
+  // Lunes de esta semana (ajustado)
+  final thisMonday = now.subtract(Duration(days: now.weekday - 1)); // Restar el día actual menos 1 (lunes)
+  
+  // Lunes de la próxima semana
+  final nextMonday = DateTime(now.year, now.month, now.day + (8 - now.weekday)); // Mismo cálculo que antes
+  
+  // Domingo de la próxima semana
+  final nextSunday = nextMonday.add(Duration(days: 6));  // Domingo de la siguiente semana
+  
+  final startTimestamp = thisMonday.millisecondsSinceEpoch;  // Usar el lunes de esta semana
+  final endTimestamp = nextSunday.millisecondsSinceEpoch;    // Usar el domingo de la próxima semana
 
-    final startTimestamp = startOfWeek.millisecondsSinceEpoch;
-    final endTimestamp = endOfWeek.millisecondsSinceEpoch;
-
-    final result = await getWeeklySchedule(startTimestamp, endTimestamp);
-    return result ?? [];
-  }
+  final result = await getWeeklySchedule(startTimestamp, endTimestamp);
+  return result ?? [];
+}
 
   Future<List<AnimeSchedule>?> getWeeklySchedule(int startTimestamp, int endTimestamp) async {
     int startSeconds = startTimestamp ~/ 1000;
@@ -34,7 +41,7 @@ class AniListService {
 
     final query = gql(r'''
       query ($start: Int, $end: Int) {
-        Page(page: 1, perPage: 50) {
+        Page(page: 1, perPage: 0) {
           airingSchedules(airingAt_greater: $start, airingAt_lesser: $end, sort: TIME) {
             airingAt
             episode
@@ -69,9 +76,6 @@ class AniListService {
 
     final result = await _client.query(options);
 
-    print("🧐 Datos recibidos de AniList (Semanal): ${result.data}");
-    print("🧐 Excepciones (Semanal): ${result.exception}");
-
     if (result.hasException) {
       print("❌ Error GraphQL al obtener el horario semanal: ${result.exception.toString()}");
       return null;
@@ -92,7 +96,7 @@ class AniListService {
     final List<dynamic> schedules = schedulesData;
 
     if (schedules.isEmpty) {
-      print("✅ No hay episodios programados para esta semana en AniList.");
+      print("✅ No hay episodios programados para la próxima semana en AniList.");
       return [];
     }
 
