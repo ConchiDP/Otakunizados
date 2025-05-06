@@ -81,6 +81,10 @@ class _CalendarScreenState extends State<CalendarScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isToday = DateTime.now();
+    final firstDay = isToday.subtract(const Duration(days: 7));
+    final lastDay = isToday.add(const Duration(days: 14));
+
     return Scaffold(
       appBar: AppBar(
         title: const Text("Calendario de Estrenos"),
@@ -97,8 +101,10 @@ class _CalendarScreenState extends State<CalendarScreen> {
               children: [
                 TableCalendar(
                   focusedDay: _focusedDay,
-                  firstDay: DateTime.now().subtract(const Duration(days: 7)),
-                  lastDay: DateTime.now().add(const Duration(days: 14)),
+                  firstDay: firstDay, 
+                  lastDay: lastDay,
+                  //firstDay: DateTime.now().subtract(const Duration(days: 7)), // fuera del widget
+                  //lastDay: DateTime.now().add(const Duration(days: 14)), // fuera del widget
                   calendarFormat: CalendarFormat.week,
                   locale: 'es_ES',
                   startingDayOfWeek: StartingDayOfWeek.monday,

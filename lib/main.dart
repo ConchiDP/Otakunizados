@@ -11,7 +11,7 @@ import 'package:otakunizados/screens/news/news_screen.dart';
 import 'package:otakunizados/screens/news/news_list_screen.dart';
 import 'package:otakunizados/screens/events/events_screen.dart';
 import 'package:otakunizados/screens/calendar/calendar_screen.dart'; // calendario español
-import 'package:intl/date_symbol_data_local.dart'; // Importa esto para la localización
+import 'package:intl/date_symbol_data_local.dart'; // localización
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
