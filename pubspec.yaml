@@ -13,6 +13,13 @@ dependencies:
   firebase_core: ^3.12.1
   firebase_auth: ^5.5.2
   cloud_firestore: ^5.6.5
+  google_sign_in: ^6.2.1
+  url_launcher: ^6.2.3
+  table_calendar: ^3.0.9
+  http: ^1.2.0
+  device_info_plus: ^10.1.0
+  graphql_flutter: ^5.1.2
+  
 
 dev_dependencies:
   flutter_test:
@@ -24,6 +31,6 @@ flutter:
 
   assets:
     - assets/Otakunizados.jpg
-    - assets/flores_cerezo.gif
     - assets/anime.jpg
     - assets/images/logo.png
+    - assets/images/dandadan_trailer.jpg
