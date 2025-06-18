@@ -33,7 +33,7 @@ Otakunizados busca ser el punto de encuentro digital para fans del anime, manga 
 ---
 
 ## 📁 Estructura del proyecto
-
+```plaintext
 lib/
 ├── main.dart                     # Punto de entrada de la app
 ├── models/                      # Modelos de datos
@@ -73,7 +73,7 @@ lib/
 │   ├── news_card.dart                # Tarjeta para noticias
 │   └── auth_background.dart          # Fondo decorativo para pantallas de auth
 
-
+````
 ---
 
 ## Estado del proyecto
