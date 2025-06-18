@@ -1,35 +1,78 @@
 # Otakunizados
 
-![Otakunizados Logo](assets/Otakunizados.jpg) <!-- Si tienes un logo, pon aquí la ruta o quita esta línea -->
+![Otakunizados Logo](assets/Otakunizados.jpg)
 
-**Otakunizados** es una aplicación innovadora en desarrollo, diseñada para la comunidad otaku que busca una plataforma completa y personalizada para acceder a información sobre anime, manga, eventos frikis, música, foros y mucho más.
-
----
-
-## Descripción
-
-Otakunizados centraliza en un solo lugar todo lo que los fans buscan, añadiendo herramientas de personalización y notificaciones basadas en intereses y ubicación. La app nace para cubrir una necesidad real en el creciente sector del entretenimiento japonés, especialmente en España.
-
-Este proyecto es una propuesta escalable, orientada a la comunidad y con una visión tecnológica moderna.
+**Otakunizados** es una aplicación móvil desarrollada en Flutter, pensada para la comunidad otaku. Centraliza noticias, eventos, anime, foros y mucho más en una única plataforma personalizable y escalable.
 
 ---
 
-## Características principales
+## ✨ Descripción
 
-- Información actualizada sobre anime y manga  
-- Eventos frikis y culturales en la zona del usuario  
-- Foros para interactuar con otros fans  
-- Personalización de contenido y notificaciones  
-- Soporte multiplataforma (Android, iOS, web, etc.)  
+Otakunizados busca ser el punto de encuentro digital para fans del anime, manga y la cultura japonesa. A través de una interfaz moderna y fluida, la app ofrece contenido personalizado, foros, noticias, eventos y un calendario otaku.
 
 ---
 
-## Tecnologías usadas
+## 🚀 Características principales
 
-- Flutter para desarrollo móvil multiplataforma  
-- Firebase para backend y autenticación  
-- Visual Studio Code como entorno de desarrollo  
-- Herramientas de integración continua y despliegue  
+- 📰 Noticias actualizadas del mundo otaku  
+- 📅 Calendario de estrenos de anime y eventos frikis  
+- 🧑‍🤝‍🧑 Foros y comunidad  
+- 🔔 Notificaciones personalizadas  
+- 🌍 Geolocalización para eventos cercanos  
+- 📱 Multiplataforma (Android, iOS) con Flutter  
+
+---
+
+## 🛠️ Tecnologías usadas
+
+- [Flutter](https://flutter.dev/) para desarrollo multiplataforma  
+- [Firebase](https://firebase.google.com/) para autenticación y base de datos  
+- [Anilist API](https://anilist.gitbook.io) para datos de anime  
+- Visual Studio Code como IDE principal  
+
+---
+
+## 📁 Estructura del proyecto
+
+lib/
+├── main.dart                     # Punto de entrada de la app
+├── models/                      # Modelos de datos
+│   ├── anime_model.dart              # Modelo para información de anime
+│   ├── anime_schedule_model.dart    # Modelo para calendario de emisión
+│   ├── event_model.dart              # Modelo para eventos frikis
+│   └── news_model.dart               # Modelo para noticias otaku
+│
+├── provider/                   # Gestión de estado y lógica de autenticación
+│   └── login_provider.dart         # Proveedor para login y autenticación
+│
+├── screens/                    # Pantallas agrupadas por funcionalidades
+│   ├── auth/                       # Autenticación
+│   │   ├── login_screen.dart
+│   │   ├── register_screen.dart
+│   │   └── forgot_password_screen.dart
+│   ├── calendar/
+│   │   └── calendar_screen.dart     # Calendario de anime y eventos
+│   ├── events/
+│   │   └── events_screen.dart       # Listado de eventos frikis
+│   ├── news/
+│   │   ├── news_list_screen.dart
+│   │   └── news_screen.dart         # Detalle de una noticia
+│   └── home/
+│       └── home_screen.dart         # Pantalla principal
+│
+├── services/                  # Lógica de negocio, APIs y base de datos
+│   ├── anilist_service.dart              # Llamadas a la API de Anilist
+│   ├── anime_firestore_service.dart      # Guardado de anime en Firestore
+│   ├── anime_schedule_service.dart       # Lógica para el calendario
+│   ├── anime_schedule_firestore_service.dart
+│   └── login_services.dart              # Autenticación con Firebase
+│
+├── widgets/                   # Componentes reutilizables de UI
+│   ├── app_scaffold.dart             # Scaffold común con navegación
+│   ├── bottom_nav_bar.dart           # Barra de navegación inferior
+│   ├── news_card.dart                # Tarjeta para noticias
+│   └── auth_background.dart          # Fondo decorativo para pantallas de auth
+
 
 ---
 
