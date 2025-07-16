@@ -3,6 +3,9 @@ import 'package:otakunizados/models/anime_schedule_model.dart';
 import 'package:otakunizados/services/anilist_service.dart';
 import 'package:otakunizados/services/anime_schedule_firestore_service.dart';
 import 'package:table_calendar/table_calendar.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:otakunizados/models/anime_model.dart';
 
 class CalendarScreen extends StatefulWidget {
   const CalendarScreen({Key? key}) : super(key: key);
@@ -21,41 +24,35 @@ class _CalendarScreenState extends State<CalendarScreen> {
   @override
   void initState() {
     super.initState();
-    _initLoad();
+    _loadUserAnimes();
   }
 
-  Future<void> _initLoad() async {
-    await _loadScheduleFromFirestore();
-
-    if (_groupedEpisodes.isEmpty) {
-      await _fetchScheduleFromAniList();
-    }
-  }
-
-  Future<void> _loadScheduleFromFirestore() async {
+  Future<void> _loadUserAnimes() async {
     setState(() => _isLoading = true);
-    final episodes = await AnimeScheduleFirestoreService().getEpisodes(); // Asegúrate de que este método esté implementado
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) {
+      setState(() => _isLoading = false);
+      return;
+    }
+    final snapshot = await FirebaseFirestore.instance
+        .collection('user_lists')
+        .doc(user.uid)
+        .collection('animes')
+        .get();
+    final List<AnimeEpisode> allEpisodes = [];
+    for (var doc in snapshot.docs) {
+      final anime = Anime.fromMap(doc.data());
+      allEpisodes.addAll(anime.episodes);
+    }
+    
+    final List<AnimeSchedule> episodes = allEpisodes.map((e) => AnimeSchedule(
+      airingAt: e.airingAt,
+      episode: e.episode,
+      title: e.title,
+      coverImageUrl: e.coverImageUrl,
+    )).toList();
     _groupEpisodesByDate(episodes);
     setState(() => _isLoading = false);
-  }
-
-  Future<void> _fetchScheduleFromAniList() async {
-    setState(() => _isLoading = true);
-
-    try {
-      final schedule = await AniListService().getEpisodesThisAndNextWeek();
-
-      if (schedule.isNotEmpty) {
-        for (var episode in schedule) {
-          await AnimeScheduleFirestoreService().saveEpisode(episode); // Guarda episodios
-        }
-      }
-
-      await _loadScheduleFromFirestore();
-    } catch (e) {
-      print("❌ Error al obtener el horario de AniList: $e");
-      setState(() => _isLoading = false);
-    }
   }
 
   void _groupEpisodesByDate(List<AnimeSchedule> episodes) {
@@ -75,7 +72,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
   }
 
   List<AnimeSchedule> _getEpisodesForDay(DateTime day) {
-    final key = DateTime(day.year, day.month, day.day); // Normalizamos la fecha
+    final key = DateTime(day.year, day.month, day.day); 
     return _groupedEpisodes[key] ?? [];
   }
 
@@ -88,12 +85,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text("Calendario de Estrenos"),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.refresh),
-            onPressed: _fetchScheduleFromAniList,
-          ),
-        ],
+       
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
@@ -103,13 +95,12 @@ class _CalendarScreenState extends State<CalendarScreen> {
                   focusedDay: _focusedDay,
                   firstDay: firstDay, 
                   lastDay: lastDay,
-                  //firstDay: DateTime.now().subtract(const Duration(days: 7)), // fuera del widget
-                  //lastDay: DateTime.now().add(const Duration(days: 14)), // fuera del widget
                   calendarFormat: CalendarFormat.week,
                   locale: 'es_ES',
                   startingDayOfWeek: StartingDayOfWeek.monday,
                   selectedDayPredicate: (day) => isSameDay(_selectedDay, day),
                   eventLoader: _getEpisodesForDay,
+                  headerStyle: const HeaderStyle(formatButtonVisible: false),
                   onDaySelected: (selectedDay, focusedDay) {
                     setState(() {
                       _selectedDay = selectedDay;
@@ -138,6 +129,9 @@ class _CalendarScreenState extends State<CalendarScreen> {
                 ),
               ],
             ),
+    );
+  }
+}
     );
   }
 }
