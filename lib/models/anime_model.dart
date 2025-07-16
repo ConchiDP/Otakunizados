@@ -21,11 +21,17 @@ class AnimeEpisode {
   }
 
   factory AnimeEpisode.fromMap(Map<String, dynamic> map) {
+    if (!map.containsKey('episode') ||
+        !map.containsKey('title') ||
+        !map.containsKey('airingAt') ||
+        !map.containsKey('coverImageUrl')) {
+      throw Exception('Faltan campos requeridos en el mapa para AnimeEpisode');
+    }
     return AnimeEpisode(
-      episode: map['episode'] ?? 0,
-      title: map['title'] ?? '',
-      airingAt: map['airingAt'] ?? 0,
-      coverImageUrl: map['coverImageUrl'] ?? '',
+      episode: map['episode'],
+      title: map['title'],
+      airingAt: map['airingAt'],
+      coverImageUrl: map['coverImageUrl'],
     );
   }
 }
@@ -59,3 +65,4 @@ class Anime {
     );
   }
 }
+
