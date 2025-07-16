@@ -1,14 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:otakunizados/provider/login_provider.dart';
-import 'package:otakunizados/widgets/auth_background.dart'; // Importa el widget de fondo
+import 'package:otakunizados/widgets/auth_background.dart';
 
-class LoginScreen extends StatelessWidget {
+class LoginScreen extends StatefulWidget {
+  LoginScreen({super.key});
+
+  @override
+  State<LoginScreen> createState() => _LoginScreenState();
+}
+
+class _LoginScreenState extends State<LoginScreen> {
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
   final Color azulOscuro = const Color(0xFF0D47A1);
-
-  LoginScreen({super.key});
+  bool _obscurePassword = true;
 
   @override
   Widget build(BuildContext context) {
@@ -24,7 +30,7 @@ class LoginScreen extends StatelessWidget {
           ),
           const SizedBox(height: 30),
 
-          // Campo para el correo electrónico
+          
           TextField(
             controller: emailController,
             style: const TextStyle(color: Colors.white),
@@ -41,19 +47,30 @@ class LoginScreen extends StatelessWidget {
           ),
           const SizedBox(height: 20),
 
-          // Campo para la contraseña
+          
           TextField(
             controller: passwordController,
-            obscureText: true,
+            obscureText: _obscurePassword,
             style: const TextStyle(color: Colors.white),
-            decoration: const InputDecoration(
+            decoration: InputDecoration(
               labelText: 'Contraseña',
-              labelStyle: TextStyle(color: Colors.white),
-              enabledBorder: OutlineInputBorder(
+              labelStyle: const TextStyle(color: Colors.white),
+              enabledBorder: const OutlineInputBorder(
                 borderSide: BorderSide(color: Color(0xFF0D47A1)),
               ),
-              focusedBorder: OutlineInputBorder(
+              focusedBorder: const OutlineInputBorder(
                 borderSide: BorderSide(color: Colors.white),
+              ),
+              suffixIcon: IconButton(
+                icon: Icon(
+                  _obscurePassword ? Icons.visibility_off : Icons.visibility,
+                  color: Colors.white,
+                ),
+                onPressed: () {
+                  setState(() {
+                    _obscurePassword = !_obscurePassword;
+                  });
+                },
               ),
             ),
           ),
@@ -73,13 +90,13 @@ class LoginScreen extends StatelessWidget {
                       passwordController.text.trim(),
                     );
 
-                    // Si hay error en el login, mostrar mensaje
+                    
                     if (errorMessage != null) {
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(content: Text(errorMessage)),
                       );
                     } else {
-                      // Si el login es exitoso, redirigir al HomeScreen
+                      
                       Navigator.pushReplacementNamed(context, '/home');
                     }
                   },
@@ -88,7 +105,7 @@ class LoginScreen extends StatelessWidget {
 
           const SizedBox(height: 20),
 
-          // Botón de inicio de sesión con Google
+          
           ElevatedButton(
             style: ElevatedButton.styleFrom(
               backgroundColor: azulOscuro,
@@ -109,12 +126,12 @@ class LoginScreen extends StatelessWidget {
 
           const SizedBox(height: 10),
 
-          // Enlace para ir a la pantalla de olvido de contraseña
+          
           TextButton(
             onPressed: () => Navigator.pushNamed(context, '/forgot'),
             child: const Text('¿Olvidaste tu contraseña?', style: TextStyle(color: Colors.white)),
           ),
-          // Enlace para ir a la pantalla de registro
+         
           TextButton(
             onPressed: () => Navigator.pushNamed(context, '/register'),
             child: const Text('Crear cuenta', style: TextStyle(color: Colors.white)),
@@ -124,3 +141,4 @@ class LoginScreen extends StatelessWidget {
     );
   }
 }
+
