@@ -63,27 +63,21 @@ class ForgotPasswordScreen extends StatelessWidget {
                     ),
                     onPressed: () async {
                       loginProvider.setLoading(true);
-
-                      // Llamamos al método resetPassword
-                      final errorMessage = await loginProvider.resetPassword(
-                        emailController.text.trim(),
-                      );
-                      loginProvider.setLoading(false);
-
-                      if (errorMessage != null) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text(errorMessage)),
+                      try {
+                        await loginProvider.resetPassword(
+                          emailController.text.trim(),
                         );
-                      } else {
-                        // Si la contraseña fue reseteada con éxito
                         ScaffoldMessenger.of(context).showSnackBar(
                           const SnackBar(content: Text('Revisa tu correo para resetear la contraseña')),
                         );
-
-                        // Después de 2 segundos, redirigimos a la pantalla de login
                         await Future.delayed(const Duration(seconds: 2));
-
                         Navigator.pushReplacementNamed(context, '/login');
+                      } catch (e) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text(e.toString().replaceFirst('Exception: ', ''))),
+                        );
+                      } finally {
+                        loginProvider.setLoading(false);
                       }
                     },
                     child: const Text('Recuperar contraseña', style: TextStyle(color: Colors.white, fontSize: 16)),
@@ -101,3 +95,4 @@ class ForgotPasswordScreen extends StatelessWidget {
     );
   }
 }
+
