@@ -4,21 +4,16 @@ import 'package:otakunizados/models/anime_model.dart';
 class AnimeFirestoreService {
   final _db = FirebaseFirestore.instance;
 
-  // Guarda el anime en la colección de animes usando el título como ID
   Future<void> saveAnime(String title, Anime anime) async {
     try {
       print('Guardando anime con título: $title');
       print('Datos del anime: ${anime.toMap()}');
       
-      // Guardamos el anime en la colección 'animes' usando el title como ID
+      
       await _db.collection('animes').doc(title).set({
         'title': anime.title,
         'coverImageUrl': anime.coverImageUrl,
-        'episodes': anime.episodes.map((e) => {
-          'episode': e.episode,
-          'airingAt': e.airingAt,
-          'coverImageUrl': e.coverImageUrl,
-        }).toList(),
+        'episodes': anime.episodes.map((e) => e.toMap()).toList(),
       });
       print('Anime guardado con éxito');
     } catch (e) {
@@ -26,7 +21,7 @@ class AnimeFirestoreService {
     }
   }
 
-  // Obtiene un anime por título desde Firestore
+  
   Future<Anime?> getAnimeByTitle(String title) async {
     try {
       final docSnapshot = await _db.collection('animes').doc(title).get();
@@ -46,7 +41,7 @@ class AnimeFirestoreService {
     }
   }
 
-  // Obtiene todos los animes con sus episodios
+  
   Future<List<Anime>> getAnimes() async {
     final snapshot = await _db.collection('animes').get();
 
@@ -56,7 +51,7 @@ class AnimeFirestoreService {
 
       return Anime(
         title: data['title'],
-        coverImageUrl: data['coverImageUrl'] ?? '', // Puede ser opcional
+        coverImageUrl: data['coverImageUrl'] ?? '', 
         episodes: episodesData.map((episodeData) => AnimeEpisode.fromMap(episodeData)).toList(),
       );
     }).toList();
