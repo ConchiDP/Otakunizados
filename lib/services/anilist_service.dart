@@ -4,11 +4,14 @@ import 'package:otakunizados/models/anime_model.dart';
 import 'package:otakunizados/services/anime_schedule_firestore_service.dart';
 import 'package:otakunizados/services/anime_firestore_service.dart';
 
+
+const String kAniListApiUrl = 'https://graphql.anilist.co';
+
 class AniListService {
   late GraphQLClient _client;
 
   AniListService() {
-    final httpLink = HttpLink('https://graphql.anilist.co');
+    final httpLink = HttpLink(kAniListApiUrl);
     _client = GraphQLClient(
       link: httpLink,
       cache: GraphQLCache(),
@@ -126,7 +129,7 @@ class AniListService {
 
       sortedSchedules.sort((a, b) => a.airingAt.compareTo(b.airingAt));
 
-      // Guardar anime con episodios en Firestore
+      
       for (var animeSchedule in sortedSchedules) {
         final exists = await AnimeScheduleFirestoreService().doesEpisodeExist(animeSchedule.airingAt);
         if (!exists) {
@@ -154,10 +157,10 @@ class AniListService {
           await AnimeFirestoreService().saveAnime(animeSchedule.title, newAnime);
           print("Guardando anime nuevo: ${animeSchedule.title}");
         } else {
-          // Si el anime ya existe, actualizamos sus episodios si no están duplicados
+          
           final existingEpisodes = anime.episodes ?? [];
           final updatedEpisodes = [...existingEpisodes, animeSchedule]
-              .toSet() // Eliminar duplicados
+              .toSet() 
               .toList();
           final updatedAnime = Anime(
             title: anime.title,
@@ -175,4 +178,112 @@ class AniListService {
       return null;
     }
   }
+
+  Future<List<Anime>> searchAnime(String query) async {
+    final searchQuery = gql(r'''
+      query (
+        $query: String
+      ) {
+        Page(page: 1, perPage: 10) {
+          media(search: $query, type: ANIME) {
+            id
+            title {
+              romaji
+              english
+            }
+            coverImage {
+              large
+            }
+            episodes
+          }
+        }
+      }
+    ''');
+
+    final options = QueryOptions(
+      document: searchQuery,
+      variables: {'query': query},
+      fetchPolicy: FetchPolicy.networkOnly,
+    );
+
+    final result = await _client.query(options);
+
+    if (result.hasException) {
+      print('Error al buscar animes: ${result.exception}');
+      return [];
+    }
+
+    final mediaList = result.data?['Page']?['media'] as List<dynamic>?;
+    if (mediaList == null) return [];
+
+    return mediaList.map((media) {
+      final title = media['title']?['romaji'] ?? media['title']?['english'] ?? 'Sin título';
+      final coverImageUrl = media['coverImage']?['large'] ?? '';
+      final episodesCount = media['episodes'] ?? 0;
+      return Anime(
+        title: title,
+        coverImageUrl: coverImageUrl,
+        episodes: List.generate(episodesCount, (i) => AnimeEpisode(
+          episode: i + 1,
+          title: title,
+          airingAt: 0,
+          coverImageUrl: coverImageUrl,
+        )),
+      );
+    }).toList();
+  }
+
+  Future<List<AnimeEpisode>> getAnimeEpisodes(String animeTitle) async {
+    final query = gql(r'''
+      query (
+        $search: String
+      ) {
+        Media(search: $search, type: ANIME) {
+          title {
+            romaji
+            english
+          }
+          coverImage {
+            large
+          }
+          airingSchedule(notYetAired: true, perPage: 50) {
+            nodes {
+              episode
+              airingAt
+            }
+          }
+        }
+      }
+    ''');
+
+    final options = QueryOptions(
+      document: query,
+      variables: {'search': animeTitle},
+      fetchPolicy: FetchPolicy.networkOnly,
+    );
+
+    final result = await _client.query(options);
+
+    if (result.hasException) {
+      print('Error al buscar episodios: ${result.exception}');
+      return [];
+    }
+
+    final media = result.data?['Media'];
+    if (media == null) return [];
+    final title = media['title']?['romaji'] ?? media['title']?['english'] ?? 'Sin título';
+    final coverImageUrl = media['coverImage']?['large'] ?? '';
+    final nodes = media['airingSchedule']?['nodes'] as List<dynamic>?;
+    if (nodes == null) return [];
+
+    return nodes.map((node) {
+      return AnimeEpisode(
+        episode: node['episode'] ?? 0,
+        title: title,
+        airingAt: (node['airingAt'] ?? 0) * 1000, 
+        coverImageUrl: coverImageUrl,
+      );
+    }).toList();
+  }
 }
+
