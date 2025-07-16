@@ -1,9 +1,15 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 
-class LoginServices {
+class AuthManager {
+  AuthManager._privateConstructor();
+  static final AuthManager _instance = AuthManager._privateConstructor();
+  static AuthManager get instance => _instance;
+
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final GoogleSignIn _googleSignIn = GoogleSignIn();
+
+  User? get currentUser => _auth.currentUser;
 
   Future<User?> loginWithEmailPassword(String email, String password) async {
     try {
