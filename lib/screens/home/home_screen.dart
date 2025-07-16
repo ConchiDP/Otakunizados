@@ -19,47 +19,15 @@ class _HomeScreenState extends State<HomeScreen> {
     setState(() {
       _currentIndex = index;
     });
+    if (index == 1) {
+      Navigator.pushNamed(context, '/my-lists');
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return AppScaffold(
       title: 'Bienvenido',
-      appBar: AppBar(
-        backgroundColor: const Color.fromARGB(255, 0, 0, 0),
-        title: Row(
-          children: [
-            Image.asset(
-              'assets/Otakunizados.jpg',
-              width: 40,
-              height: 40,
-            ),
-            const SizedBox(width: 10),
-            const Text('Otakunizados', style: TextStyle(color: Colors.white)),
-          ],
-        ),
-        actions: [
-          PopupMenuButton<String>(
-            onSelected: (value) {
-              if (value == 'Cerrar sesión') {
-                Navigator.pushReplacementNamed(context, '/login');
-              } else if (value == 'Perfil') {
-                // Acción para navegar al perfil
-              } else if (value == 'Configuración') {
-                // Acción para la configuración
-              }
-            },
-            itemBuilder: (BuildContext context) {
-              return {'Perfil', 'Configuración', 'Cerrar sesión'}.map((String choice) {
-                return PopupMenuItem<String>(
-                  value: choice,
-                  child: Text(choice),
-                );
-              }).toList();
-            },
-          ),
-        ],
-      ),
       body: Stack(
         children: [
           Container(
@@ -78,7 +46,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Sección de bienvenida
+                    
                     Container(
                       padding: const EdgeInsets.all(20),
                       decoration: BoxDecoration(
@@ -109,7 +77,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                     const SizedBox(height: 30),
 
-                    // Sección de noticias destacadas
+                    
                     const Text(
                       'Noticias Destacadas',
                       style: TextStyle(
@@ -146,7 +114,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                     const SizedBox(height: 30),
 
-                    // Botones de navegación
+                    
                     _buildNavButton(
                       icon: Icons.newspaper,
                       title: 'Noticias',
@@ -173,14 +141,14 @@ class _HomeScreenState extends State<HomeScreen> {
                         Navigator.pushNamed(context, '/events');
                       },
                     ),
-                    // Espacio adicional para evitar que el contenido quede detrás de la barra de navegación
+                    
                     const SizedBox(height: 80),
                   ],
                 ),
               ),
             ),
           ),
-          // Barra de navegación inferior
+          
           Positioned(
             left: 0,
             right: 0,
